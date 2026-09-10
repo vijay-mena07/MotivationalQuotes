@@ -100,7 +100,7 @@ document.addEventListener('keydown', e => {
   if(e.key === 'ArrowLeft') prev();
 });
 
-fetch('quotes.json')
+fetch('MV-quotes.json')
   .then(r => r.json())
   .then(d => { all = d; view = d; rand(); })
   .catch(() => document.getElementById('quote').textContent = 'Could not load quotes.json');
