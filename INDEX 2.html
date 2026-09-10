@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quotes</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg); color:var(--text);
+    display:flex; flex-direction:column; align-items:center; padding:30px 16px;
+  }
+  h1{margin:0 0 20px; font-size:26px; color:var(--accent)}
+  .box{width:100%; max-width:760px}
+  input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid #334155;
+    background:#0b1220; color:var(--text); font-size:15px; outline:none;
+  }
+  input:focus{border-color:var(--accent)}
+  .card{
+    background:var(--card); border-radius:14px; padding:28px 26px; margin-top:18px;
+    min-height:170px; display:flex; flex-direction:column; justify-content:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  #quote{font-size:21px; line-height:1.6; white-space:pre-wrap}
+  #author{margin-top:16px; color:var(--muted); font-style:italic; text-align:right}
+  .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
+  button{
+    flex:1; min-width:110px; padding:12px; border:0; border-radius:10px;
+    background:#334155; color:var(--text); font-size:15px; cursor:pointer;
+  }
+  button:hover{background:#475569}
+  button.primary{background:var(--accent); color:#03212f; font-weight:600}
+  #count{margin-top:12px; color:var(--muted); font-size:13px; text-align:center}
+</style>
+</head>
+<body>
+
+<h1>✦ Quotes ✦</h1>
+
+<div class="box">
+  <input id="search" placeholder="Search quote or author…" oninput="applyFilter()">
+
+  <div class="card">
+    <div id="quote">Loading…</div>
+    <div id="author"></div>
+  </div>
+
+  <div class="row">
+    <button onclick="prev()">◀ Prev</button>
+    <button class="primary" onclick="rand()">🎲 Random</button>
+    <button onclick="next()">Next ▶</button>
+    <button onclick="copyQuote()">⧉ Copy</button>
+  </div>
+
+  <div id="count"></div>
+</div>
+
+<script>
+let all = [], view = [], i = 0;
+
+function render(){
+  const c = document.getElementById('count');
+  if(!view.length){
+    document.getElementById('quote').textContent = 'No results found.';
+    document.getElementById('author').textContent = '';
+    c.textContent = '0 quotes';
+    return;
+  }
+  i = (i % view.length + view.length) % view.length;
+  const q = view[i];
+  document.getElementById('quote').textContent = '“' + q.quote + '”';
+  document.getElementById('author').textContent = '— ' + (q.author || 'Unknown');
+  c.textContent = (i+1) + ' of ' + view.length + ' quotes';
+}
+
+function next(){ i++; render(); }
+function prev(){ i--; render(); }
+function rand(){ i = Math.floor(Math.random()*view.length); render(); }
+
+function applyFilter(){
+  const s = document.getElementById('search').value.toLowerCase().trim();
+  view = !s ? all : all.filter(q =>
+    (q.quote + ' ' + (q.author||'')).toLowerCase().includes(s));
+  i = 0; render();
+}
+
+function copyQuote(){
+  if(!view.length) return;
+  const q = view[i];
+  navigator.clipboard.writeText('"' + q.quote + '" — ' + (q.author||'Unknown'));
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight') next();
+  if(e.key === 'ArrowLeft') prev();
+});
+
+fetch('quotes.json')
+  .then(r => r.json())
+  .then(d => { all = d; view = d; rand(); })
+  .catch(() => document.getElementById('quote').textContent = 'Could not load quotes.json');
+</script>
+
+</body>
+</html>
